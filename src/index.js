@@ -31,13 +31,7 @@ const cities = [
   "Washington, DC"
 ];
 
-const SpectreItem = ({
-  children,
-  value,
-  index,
-  isActive,
-  onClick
-}) =>
+const SpectreItem = ({ children, value, index, isActive, onClick }) =>
   <div
     className="menu-item"
     style={isActive ? { backgroundColor: "#eee" } : {}}
@@ -72,15 +66,13 @@ class SpectreAutocomplete extends Component {
     this.keyboardChange = this.keyboardChange.bind(this);
   }
   handleChange(e) {
-    console.log('handle change fn');
+    console.log("handle change fn");
   }
   clearInputValue() {
-    console.log('CLEAR THE MF INPUT VALUE')
-    this.ACInput.value = ''
-    console.log(this.ACInput.value)
+    console.log("CLEAR THE INPUT VALUE AFTER KEYBOARD CHANGE");
+    this.ACInput.value = "";
   }
   addCity({ value, index }, callback) {
-    // console.log({ value, index });
     this.setState(
       prevState => {
         const availableCities = [...prevState.availableCities];
@@ -115,85 +107,95 @@ class SpectreAutocomplete extends Component {
       };
     });
   }
-  clickChange(item,clearSelection) {
-    console.log('CLICK CHANGE')
+  clickChange(item, clearSelection) {
+    console.log("CLICK CHANGE");
     this.addCity(
       {
         value: item,
         index: this.state.availableCities.indexOf(item)
       },
       clearSelection
-    )
+    );
   }
-  keyboardChange(city,clearSelection) {
-    console.log('KEYBOARD CHANGE')
+  keyboardChange(city, clearSelection) {
+    console.log("KEYBOARD CHANGE");
     this.addCity(
       {
         value: city,
         index: this.state.availableCities.indexOf(city)
       },
       this.clearInputValue
-    )
+    );
   }
   render() {
     const selectedCityTags = this.state.selectedCities.map(
-      ({ city, availableCitiesIndex }, i) =>{
-          // console.log({ city, availableCitiesIndex })
-              return (<label className="chip" key={city}>
-                {city}
-                <button
-                  className="btn btn-clear"
-                  onClick={({ target }) => {
-                    this.removeCity({ value: city, index: i, availableCitiesIndex });
-                  }}
-                />
-              </label>)}
+      ({ city, availableCitiesIndex }, i) => {
+        // console.log({ city, availableCitiesIndex })
+        return (
+          <label className="chip" key={city}>
+            {city}
+            <button
+              className="btn btn-clear"
+              onClick={({ target }) => {
+                this.removeCity({
+                  value: city,
+                  index: i,
+                  availableCitiesIndex
+                });
+              }}
+            />
+          </label>
+        );
+      }
     );
     return (
       <Downshift
         onChange={city => this.keyboardChange(city)}
-        onStateChange={e => console.log('stateChange',e)}
+        onStateChange={e => console.log("stateChange", e)}
       >
-        {({ 
-        clearSelection,
-        getInputProps,
-        getItemProps,
-        isOpen,
-        inputValue,
-        selectedItem,
-        highlightedIndex }) => (
-                  <div className="form-autocomplete-input form-input">
-                  {selectedCityTags}
-                  <input
-                    {...getInputProps()}
-                    className="form-input"
-                    type="text"
-                    placeholder="Choose your city..."
-                    ref={n => this.ACInput = n}
-                  />
-        
-                  {isOpen &&
-                    (<div className="menu">
-                      {this.state.availableCities
-                        .filter(
-                          i =>
-                            !inputValue || i.toLowerCase().includes(inputValue.toLowerCase())
-                        )
-                        .map((item, index) =>
-                          <SpectreItem
-                            {...getItemProps({ item, index })}
-                            key={item}
-                            isActive={highlightedIndex === index}
-                            onClick={() =>this.clickChange(item,clearSelection)}
-                          >
-                            {item}
-                          </SpectreItem>
-                        )}
-                    </div>) ||
-                      (!isOpen && <div />)}
-        
-                  </div>
-                )}
+        {({
+          clearSelection,
+          getInputProps,
+          getItemProps,
+          isOpen,
+          inputValue,
+          selectedItem,
+          highlightedIndex
+        }) =>
+          <div className="form-autocomplete-input form-input">
+            {selectedCityTags}
+            <input
+              defaultValue=""
+              {...getInputProps({
+                defaultValue: ""
+              })}
+              className="form-input"
+              type="text"
+              placeholder="Choose your city..."
+              ref={n => (this.ACInput = n)}
+            />
+
+            {(isOpen &&
+              <div className="menu">
+                {this.state.availableCities
+                  .filter(
+                    i =>
+                      !inputValue ||
+                      i.toLowerCase().includes(inputValue.toLowerCase())
+                  )
+                  .map((item, index) =>
+                    <SpectreItem
+                      {...getItemProps({ item, index })}
+                      key={item}
+                      isActive={highlightedIndex === index}
+                      onClick={() => this.clickChange(item, clearSelection)}
+                    >
+                      {item}
+                    </SpectreItem>
+                  )}
+              </div>) ||
+              (!isOpen && <div />)}
+          </div>}
       </Downshift>
     );
   }
