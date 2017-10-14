@@ -185,23 +185,38 @@ class SpectreAutocomplete extends Component {
             />
             {(isOpen && (
               <div className="menu">
-                {this.state.availableCities
-                  .filter(
-                    i =>
-                      i !== null &&
-                      (!inputValue ||
-                        i.toLowerCase().includes(inputValue.toLowerCase()))
-                  )
-                  .map((item, index) => (
-                    <SpectreItem
-                      {...getItemProps({ item, index })}
-                      key={item}
-                      isActive={highlightedIndex === index}
-                      onClick={() => this.clickChange(item, clearSelection)}
-                    >
-                      {item}
-                    </SpectreItem>
-                  ))}
+                {(() => {
+                  let filterMatchCount = 0
+                  return [...this.state.availableCities, "No matches!"]
+                    .filter((currentItem, index, allAvailableCities) => {
+                      if (currentItem !== allAvailableCities[allAvailableCities.length-1]) {
+                        filterMatchCount += currentItem !== null &&
+                          (!inputValue ||
+                            currentItem
+                              .toLowerCase()
+                              .includes(inputValue.toLowerCase())) ? 1 : 0
+                        return (
+                          currentItem !== null && currentItem !== 'No matches!' &&
+                          (!inputValue ||
+                            currentItem
+                              .toLowerCase()
+                              .includes(inputValue.toLowerCase()))
+                        );
+                      } else if (currentItem === allAvailableCities[allAvailableCities.length-1] && filterMatchCount <= 0) {
+                        return true;
+                      }
+                    })
+                    .map((item, index, arr) => (
+                      <SpectreItem
+                        {...getItemProps({ item, index })}
+                        key={item}
+                        isActive={highlightedIndex === index}
+                        onClick={() => this.clickChange(item, clearSelection)}
+                      >
+                        {item}
+                      </SpectreItem>
+                    ));
+                })()}
               </div>
             )) ||
               (!isOpen && <div />)}
