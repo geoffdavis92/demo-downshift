@@ -31,7 +31,7 @@ const cities = [
   "Washington, DC"
 ];
 
-const SpectreItem = ({ children, value, index, isActive, onClick }) =>
+const SpectreItem = ({ children, value, index, isActive, onClick }) => (
   <div
     className="menu-item"
     style={isActive ? { backgroundColor: "#eee" } : {}}
@@ -39,18 +39,14 @@ const SpectreItem = ({ children, value, index, isActive, onClick }) =>
   >
     <a href="#!">
       <div className="tile tile-centered">
-        <div className="tile-content">
-          {children}
-        </div>
+        <div className="tile-content">{children}</div>
       </div>
     </a>
-  </div>;
+  </div>
+);
 
 const SpectreACMenu = ({ children }) =>
-  children.length > 0 &&
-  <ul className="menu">
-    {children}
-  </ul>;
+  children.length > 0 && <ul className="menu">{children}</ul>;
 
 class SpectreAutocomplete extends Component {
   constructor() {
@@ -59,18 +55,31 @@ class SpectreAutocomplete extends Component {
       selectedCities: [],
       availableCities: [...cities]
     };
-    this.handleChange = this.handleChange.bind(this);
     this.addCity = this.addCity.bind(this);
     this.removeCity = this.removeCity.bind(this);
     this.clearInputValue = this.clearInputValue.bind(this);
     this.keyboardChange = this.keyboardChange.bind(this);
   }
-  handleChange(e) {
-    console.log("handle change fn");
+  componentDidMount() {
+    window.addEventListener("keydown", ({ keyCode }) => {
+      if (
+        keyCode === 8 &&
+        this.ACInput.value === "" &&
+        this.state.selectedCities.length >= 1
+      ) {
+        this.setState(prevState => {
+          const { selectedCities } = prevState;
+          const editableSelectedCities = [...selectedCities];
+          editableSelectedCities.splice(-1, 1);
+          return {
+            selectedCities: editableSelectedCities
+          };
+        });
+      }
+    });
   }
   clearInputValue() {
-    console.log("CLEAR THE INPUT VALUE AFTER KEYBOARD CHANGE");
-    this.ACInput.value = "";
+    this.downshift.clearSelection();
   }
   addCity({ value, index }, callback) {
     this.setState(
@@ -108,7 +117,6 @@ class SpectreAutocomplete extends Component {
     });
   }
   clickChange(item, clearSelection) {
-    console.log("CLICK CHANGE");
     this.addCity(
       {
         value: item,
@@ -118,19 +126,18 @@ class SpectreAutocomplete extends Component {
     );
   }
   keyboardChange(city, clearSelection) {
-    console.log("KEYBOARD CHANGE");
-    this.addCity(
-      {
-        value: city,
-        index: this.state.availableCities.indexOf(city)
-      },
-      this.clearInputValue
-    );
+    city !== null &&
+      this.addCity(
+        {
+          value: city,
+          index: this.state.availableCities.indexOf(city)
+        },
+        this.downshift.clearSelection
+      );
   }
   render() {
     const selectedCityTags = this.state.selectedCities.map(
       ({ city, availableCitiesIndex }, i) => {
-        // console.log({ city, availableCitiesIndex })
         return (
           <label className="chip" key={city}>
             {city}
@@ -150,18 +157,20 @@ class SpectreAutocomplete extends Component {
     );
     return (
       <Downshift
+        ref={downshift => (this.downshift = downshift)}
         onChange={city => this.keyboardChange(city)}
-        onStateChange={e => console.log("stateChange", e)}
       >
         {({
           clearSelection,
+          getDownshiftStateAndHelpers,
           getInputProps,
           getItemProps,
+          setInputProps,
           isOpen,
           inputValue,
           selectedItem,
           highlightedIndex
-        }) =>
+        }) => (
           <div className="form-autocomplete-input form-input">
             {selectedCityTags}
             <input
@@ -174,16 +183,16 @@ class SpectreAutocomplete extends Component {
               placeholder="Choose your city..."
               ref={n => (this.ACInput = n)}
             />
-
-            {(isOpen &&
+            {(isOpen && (
               <div className="menu">
                 {this.state.availableCities
                   .filter(
                     i =>
-                      !inputValue ||
-                      i.toLowerCase().includes(inputValue.toLowerCase())
+                      i !== null &&
+                      (!inputValue ||
+                        i.toLowerCase().includes(inputValue.toLowerCase()))
                   )
-                  .map((item, index) =>
+                  .map((item, index) => (
                     <SpectreItem
                       {...getItemProps({ item, index })}
                       key={item}
@@ -192,22 +201,27 @@ class SpectreAutocomplete extends Component {
                     >
                       {item}
                     </SpectreItem>
-                  )}
-              </div>) ||
+                  ))}
+              </div>
+            )) ||
               (!isOpen && <div />)}
-          </div>}
+          </div>
+        )}
       </Downshift>
     );
   }
 }
+
+const commonStyles = {
+  textAlign: "center"
+};
 
 const Examples = () => {
   return (
     <Div
       css={{
         margin: "50px auto",
-        maxWidth: 800,
-        textAlign: "center"
+        maxWidth: 800
       }}
     >
       <link
@@ -218,8 +232,8 @@ const Examples = () => {
         href="https://unpkg.com/spectre.css@0.2.14/dist/spectre-icons.css"
         rel="stylesheet"
       />
-      <h1>Spectre Autocomplete</h1>
-      <p>
+      <h1 style={commonStyles}>Spectre Autocomplete</h1>
+      <p style={commonStyles}>
         Uses{" "}
         <a
           href="https://picturepan2.github.io/spectre"
