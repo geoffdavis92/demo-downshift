@@ -274,6 +274,8 @@ const Examples = () => {
       >
         <SpectreAutocomplete />
       </div>
+      <br/>
+      <p style={commonStyles}><small><a href="https://github.com/geoffdavis92/demo-downshift">Github repo</a></small></p>
     </Div>
   );
 };
